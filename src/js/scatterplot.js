@@ -185,6 +185,9 @@ class ScatterPlot {
       this.curveMinY = Math.min(...this.curvePoints);
       this.curveMaxY = Math.max(...this.curvePoints);
       this.gradient = this.GetGradient();
+    } else {
+      this.curveMinY = Number.MAX_VALUE;
+      this.curveMaxY = Number.MIN_VALUE;
     }
   }
 
@@ -196,8 +199,22 @@ class ScatterPlot {
     let points = new Map();
 
     for (let i = 0; i < this.plotPoints.length; i++) {
-      let x = parseFloat(this.plotPoints[i].getAttribute(this.prefix + 'x')); // .toFixed(1);
-      let y = parseFloat(this.plotPoints[i].getAttribute(this.prefix + 'y'));
+      let x;
+      let y;
+
+      // extract x, y coordinates based on the SVG element type
+      if (this.plotPoints[i] instanceof SVGPathElement) {
+        let pathD = this.plotPoints[i].getAttribute('d');
+        let regex = /M\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)/g;
+
+        let match = regex.exec(pathD);
+        x = parseFloat(match[1]);
+        y = parseFloat(match[3]);
+      } else {
+        x = parseFloat(this.plotPoints[i].getAttribute(this.prefix + 'x')); // .toFixed(1);
+        y = parseFloat(this.plotPoints[i].getAttribute(this.prefix + 'y'));
+      }
+
       if (!points.has(x)) {
         points.set(x, new Set([y]));
       } else {
@@ -234,7 +251,7 @@ class ScatterPlot {
    */
   GetElementIndex(elementName = 'point') {
     let elIndex = -1;
-    if ('type' in singleMaidr) {
+    if ('type' in singleMaidr && Array.isArray(singleMaidr.type)) {
       elIndex = singleMaidr.type.indexOf(elementName);
     }
     return elIndex;
@@ -247,10 +264,10 @@ class ScatterPlot {
    */
   GetDataXYFormat(dataIndex) {
     // detect if data is in form [{x: 1, y: 2}, {x: 2, y: 3}] (object) or {x: [1, 2], y: [2, 3]]} (array)
-    let xyFormat = 'array';
+    let xyFormat = 'object';
     if (singleMaidr.data[dataIndex]) {
       if (Array.isArray(singleMaidr.data[dataIndex])) {
-        xyFormat = 'object';
+        xyFormat = 'array';
       }
     }
     return xyFormat;
@@ -353,14 +370,14 @@ class ScatterPlot {
     if (typeof data !== 'undefined') {
       // assuming we got something, loop through the data and extract the x and y values
 
-      if (xyFormat == 'array') {
+      if (xyFormat == 'object') {
         if ('x' in singleMaidr.data[elIndex]) {
           xValues = singleMaidr.data[elIndex]['x'];
         }
         if ('y' in singleMaidr.data[elIndex]) {
           yValues = singleMaidr.data[elIndex]['y'];
         }
-      } else if (xyFormat == 'object') {
+      } else if (xyFormat == 'array') {
         for (let i = 0; i < singleMaidr.data[elIndex].length; i++) {
           let x = singleMaidr.data[elIndex][i]['x'];
           let y = singleMaidr.data[elIndex][i]['y'];
@@ -582,10 +599,25 @@ class Layer0Point {
     this.circleIndex = [];
     for (let j = 0; j < this.y.length; j++) {
       for (let i = 0; i < plot.plotPoints.length; i++) {
-        if (
-          plot.plotPoints[i].getAttribute(plot.prefix + 'x') == this.x &&
-          plot.plotPoints[i].getAttribute(plot.prefix + 'y') == this.y[j]
+        let x;
+        let y;
+
+        if (plot.plotPoints[i] instanceof SVGPathElement) {
+          const pathD = plot.plotPoints[i].getAttribute('d');
+          const regex = /M\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)/g;
+
+          let match = regex.exec(pathD);
+          x = parseFloat(match[1]);
+          y = parseFloat(match[3]);
+        } else if (
+          plot.plotPoints[i] instanceof SVGUseElement ||
+          plot.plotPoints[i] instanceof SVGCircleElement
         ) {
+          x = plot.plotPoints[i].getAttribute(plot.prefix + 'x');
+          y = plot.plotPoints[i].getAttribute(plot.prefix + 'y');
+        }
+
+        if (x == this.x && y == this.y[j]) {
           this.circleIndex.push(i);
           break;
         }
@@ -664,9 +696,11 @@ class Layer1Point {
    * @constructor
    */
   constructor() {
-    this.x = plot.chartLineX[0];
-    this.y = plot.chartLineY[0];
-    this.strokeWidth = 1.35;
+    if ([].concat(singleMaidr.type).includes('smooth')) {
+      this.x = plot.chartLineX[0];
+      this.y = plot.chartLineY[0];
+      this.strokeWidth = 1.35;
+    }
   }
 
   /**
