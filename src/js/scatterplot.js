@@ -645,10 +645,22 @@ class Layer0Point {
           constants.chart.getBoundingClientRect().height - this.y[i]
         );
       } else {
-        point.setAttribute(
-          'cy',
-          plot.plotPoints[this.circleIndex[i]].getAttribute('cy')
-        );
+        let y;
+
+        if (plot.plotPoints[this.circleIndex[i]] instanceof SVGPathElement) {
+          const pathD = plot.plotPoints[this.circleIndex[i]].getAttribute('d');
+          const regex = /M\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)/g;
+
+          let match = regex.exec(pathD);
+          y = parseFloat(match[3]);
+        } else if (
+          plot.plotPoints[this.circleIndex[i]] instanceof SVGUseElement ||
+          plot.plotPoints[this.circleIndex[i]] instanceof SVGCircleElement
+        ) {
+          y = plot.plotPoints[this.circleIndex[i]].getAttribute(plot.prefix + 'y');
+        }
+
+        point.setAttribute('cy', y);
       }
       point.setAttribute('r', 3.95);
       point.setAttribute('stroke', constants.colorSelected);
