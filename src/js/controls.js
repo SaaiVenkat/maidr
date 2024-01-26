@@ -90,7 +90,11 @@ class Control {
           }
 
           // switch layer controls
-          if (Array.isArray(singleMaidr.type)) {
+          if (
+            Array.isArray(singleMaidr.type) &&
+            [].concat(singleMaidr.type).includes('point') &&
+            [].concat(singleMaidr.type).includes('smooth')
+          ) {
             // page down /(fn+down arrow): change chart type (layer)
             if (e.key == 'PageDown' && constants.brailleMode == 'off') {
               display.changeChartLayer('down');
