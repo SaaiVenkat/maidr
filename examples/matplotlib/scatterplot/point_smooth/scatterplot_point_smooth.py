@@ -1,64 +1,61 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
 import json
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Load the iris dataset
-iris = sns.load_dataset('iris')
+# Set seed for reproducibility
+np.random.seed(0)
 
-# Set the size of the figure
-plt.figure(figsize=(10, 6))
+# Generate random data for the scatter plot
+x_random = np.random.rand(50) * 60  # X values between 0 and 60
+y_random = np.random.rand(50)  # Y values between 0 and 1
 
-# Create a scatter plot of sepal length vs petal length
-sns.scatterplot(x='sepal_length', y='petal_length', data=iris, label='Individual Measurements')
+# Generate sine wave data
+x_sine = np.linspace(0, 60, 100)  # X values for sine wave
+y_sine = 0.5 + 0.5 * np.sin(np.pi * x_sine / 30)  # Sine wave with amplitude 0.5 and period of 60
 
-# Overlay a regression line
-regline = sns.regplot(x='sepal_length', y='petal_length', data=iris, scatter=False, color='red', label='Regression Line', lowess=True)
-
-# Extract scatter plot data
-scatter_data = [{'x': row['sepal_length'], 'y': row['petal_length']} for index, row in iris.iterrows()]
-
-# Extracting the line data
-line_data = regline.get_lines()[0].get_data()
-regression_data = [{'x': x, 'y': y} for x, y in zip(line_data[0], line_data[1])]
-
-# Enhancing the plot
-plt.title('Iris Sepal Length vs Petal Length with Regression Line')
-plt.xlabel('Sepal Length (cm)')
-plt.ylabel('Petal Length (cm)')
-plt.legend()
+# Create the plot
+plt.figure(figsize=(8, 6))
+plt.scatter(x_random, y_random, color='blue', label='Random Scatter')  # Scatter plot
+plt.plot(x_sine, y_sine, color='red', label='Sine Wave')  # Sine wave line plot
+plt.title('Random Scatter Plot with Sine Wave')
+plt.xlabel('X values')
+plt.ylabel('Y values')
 
 # Save the plot as an SVG file
 plt.savefig('scatterplot_point_smooth.svg', format='svg')
 
-# Generating the 'maidr' structure for the 'Adelie' species
+# Generating the 'maidr' structure
 maidr = {
     'type': ['point', 'smooth'],
     'id': 'scatter',
     'selector': [
-        "TODO: INCLUDE THE POINT SELECTOR HERE",
-        "TODO: INCLUDE THE SMOOTH SELECTOR HERE"
+        "TODO: TYPE YOUR POINT SELECTOR HERE",
+        "TODO: TYPE YOUR SMOOTH SELECTOR HERE"
     ],
-    'title': 'Iris Sepal Length vs Petal Length with Regression Line',
-    'name': 'Iris Plot',
+    'title': 'Random Scatter Plot with Sine Wave',
+    'name': 'Scatter Sine Plot',
     'axes': {
         'x': {
-            'label': 'Sepal Length (cm)',
+            'label': 'X values',
         },
         'y': {
-            'label': 'Petal Length (cm)',
+            'label': 'Y values',
         },
     },
     'labels': {
-        'title': 'Iris Sepal Length vs Petal Length with Regression Line',
-        'x': 'Sepal Length (cm)',
-        'y': 'Petal Length (cm)',
+        'title': 'Random Scatter Plot with Sine Wave',
+        'x': 'X values',
+        'y': 'Y values',
     },
     'data': [
-        # scatter plot
-        scatter_data,
-
-        # regression line
-        regression_data
+        [
+            # Data for scatter plot
+            {'x': x_val, 'y': y_val} for x_val, y_val in zip(x_random, y_random)
+        ],
+        [
+            # Data for sine wave line plot
+            {'x': x_val, 'y': y_val} for x_val, y_val in zip(x_sine, y_sine)
+        ]
     ],
 }
 
