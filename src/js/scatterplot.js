@@ -492,17 +492,30 @@ class ScatterPlot {
    * @returns {Array<Array<number>>} An array containing two arrays: the x-coordinates and y-coordinates.
    */
   GetSvgLineCoords() {
-    // extract all the y coordinates from the point attribute of polyline
-    let str = this.plotLine.getAttribute('points');
-    let coords = str.split(' ');
-
     let X = [];
     let Y = [];
 
-    for (let i = 0; i < coords.length; i++) {
-      let coord = coords[i].split(',');
-      X.push(parseFloat(coord[0]));
-      Y.push(parseFloat(coord[1]));
+    // scatterplot SVG containing path element instead of polyline
+    if (this.plotLine instanceof SVGPathElement) {
+      // Assuming the path data is in the format "M x y L x y L x y L x y"
+      const pathD = this.plotLine.getAttribute('d');
+      const regex = /[ML]\s*(-?\d+(\.\d+)?)\s+(-?\d+(\.\d+)?)/g;
+
+      let match;
+      while ((match = regex.exec(pathD)) !== null) {
+        X.push(match[1]); // x coordinate
+        Y.push(match[3]); // y coordinate
+      }
+    } else {
+      // extract all the y coordinates from the point attribute of polyline
+      let str = this.plotLine.getAttribute('points');
+      let coords = str.split(' ');
+
+      for (let i = 0; i < coords.length; i++) {
+        let coord = coords[i].split(',');
+        X.push(parseFloat(coord[0]));
+        Y.push(parseFloat(coord[1]));
+      }
     }
 
     return [X, Y];
@@ -528,12 +541,12 @@ class ScatterPlot {
       data = singleMaidr.data;
     }
     if (typeof data !== 'undefined') {
-      if (xyFormat == 'object') {
+      if (xyFormat == 'array') {
         for (let i = 0; i < singleMaidr.data[elIndex].length; i++) {
           x_points.push(singleMaidr.data[elIndex][i]['x']);
           y_points.push(singleMaidr.data[elIndex][i]['y']);
         }
-      } else if (xyFormat == 'array') {
+      } else if (xyFormat == 'object') {
         if ('x' in singleMaidr.data[elIndex]) {
           x_points = singleMaidr.data[elIndex]['x'];
         }
@@ -619,7 +632,6 @@ class Layer0Point {
 
         if (x == this.x && y == this.y[j]) {
           this.circleIndex.push(i);
-          break;
         }
       }
     }
