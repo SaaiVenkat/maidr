@@ -18,7 +18,7 @@ plt.xlabel('Sepal Length (cm)')
 plt.ylabel('Sepal Width (cm)')
 
 # Save the plot as an SVG file
-plt.savefig('scatterplot_use.svg', format='svg')
+plt.savefig('scatterplot.svg', format='svg')
 
 # Generating the 'maidr' structure for the 'Adelie' species
 maidr = {
@@ -47,11 +47,11 @@ maidr = {
 }
 
 # Writing the raw data to a JSON file
-with open("scatterplot_use_raw_data.json", 'w') as json_file:
+with open("scatterplot_raw_data.json", 'w') as json_file:
     json.dump(maidr["data"], json_file, indent=4)
 
 # Writing the dictionary to a JSON file
-with open("scatterplot_use_maidr.json", 'w') as json_file:
+with open("scatterplot_maidr.json", 'w') as json_file:
     json.dump(maidr, json_file, indent=4)
 
 # Display the plot
