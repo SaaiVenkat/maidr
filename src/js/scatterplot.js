@@ -170,7 +170,7 @@ class ScatterPlot {
         singleMaidr.selector[elIndex]
       )[0];
     } else if (singleMaidr.type == 'smooth') {
-      this.plotLine = document.querySelectorAll(singleMaidr.selector);
+      this.plotLine = document.querySelectorAll(singleMaidr.selector)[0];
     }
     if (typeof this.plotLine !== 'undefined') {
       let svgLineCoords = this.GetSvgLineCoords();
@@ -264,12 +264,20 @@ class ScatterPlot {
    */
   GetDataXYFormat(dataIndex) {
     // detect if data is in form [{x: 1, y: 2}, {x: 2, y: 3}] (object) or {x: [1, 2], y: [2, 3]]} (array)
-    let xyFormat = 'object';
-    if (singleMaidr.data[dataIndex]) {
-      if (Array.isArray(singleMaidr.data[dataIndex])) {
-        xyFormat = 'array';
-      }
+    let data;
+    if (dataIndex > -1) {
+      data = singleMaidr.data[dataIndex];
+    } else {
+      data = singleMaidr.data;
     }
+
+    let xyFormat;
+    if (Array.isArray(data)) {
+      xyFormat = 'object';
+    } else {
+      xyFormat = 'array';
+    }
+
     return xyFormat;
   }
 
@@ -284,7 +292,13 @@ class ScatterPlot {
 
     // but first, are we even in an svg that can be scaled?
     let isSvg = false;
-    let element = this.plotPoints[0]; // a random start, may as well be the first
+    let element
+    if ([].concat(singleMaidr.type).includes('point')) {
+      element = this.plotPoints[0]; // a random start, may as well be the first
+    } else if ([].concat(singleMaidr.type).includes('smooth')) {
+      element = this.plotLine; // a random start, may as well be the first
+    }
+
     while (element) {
       if (element.tagName.toLowerCase() == 'body') {
         break;
@@ -296,7 +310,13 @@ class ScatterPlot {
     }
 
     if (isSvg) {
-      let element = this.plotPoints[0]; // a random start, may as well be the first
+      let element
+      if ([].concat(singleMaidr.type).includes('point')) {
+        element = this.plotPoints[0]; // a random start, may as well be the first
+      } else if ([].concat(singleMaidr.type).includes('smooth')) {
+        element = this.plotLine; // a random start, may as well be the first
+      }
+
       while (element) {
         if (element.tagName.toLowerCase() == 'body') {
           break;
@@ -338,7 +358,7 @@ class ScatterPlot {
     let prefix = '';
     if (
       'selector' in singleMaidr &&
-      element.tagName.toLowerCase() === 'circle'
+      element && element.tagName.toLowerCase() === 'circle'
     ) {
       prefix = 'c';
     }
@@ -370,17 +390,17 @@ class ScatterPlot {
     if (typeof data !== 'undefined') {
       // assuming we got something, loop through the data and extract the x and y values
 
-      if (xyFormat == 'object') {
-        if ('x' in singleMaidr.data[elIndex]) {
-          xValues = singleMaidr.data[elIndex]['x'];
+      if (xyFormat == 'array') {
+        if ('x' in data) {
+          xValues = data['x'];
         }
-        if ('y' in singleMaidr.data[elIndex]) {
-          yValues = singleMaidr.data[elIndex]['y'];
+        if ('y' in data) {
+          yValues = data['y'];
         }
-      } else if (xyFormat == 'array') {
-        for (let i = 0; i < singleMaidr.data[elIndex].length; i++) {
-          let x = singleMaidr.data[elIndex][i]['x'];
-          let y = singleMaidr.data[elIndex][i]['y'];
+      } else if (xyFormat == 'object') {
+        for (let i = 0; i < data.length; i++) {
+          let x = data[i]['x'];
+          let y = data[i]['y'];
           xValues.push(x);
           yValues.push(y);
         }
@@ -506,7 +526,7 @@ class ScatterPlot {
         X.push(match[1]); // x coordinate
         Y.push(match[3]); // y coordinate
       }
-    } else {
+    } else if (this.plotLine instanceof SVGPolylineElement) {
       // extract all the y coordinates from the point attribute of polyline
       let str = this.plotLine.getAttribute('points');
       let coords = str.split(' ');
@@ -541,17 +561,17 @@ class ScatterPlot {
       data = singleMaidr.data;
     }
     if (typeof data !== 'undefined') {
-      if (xyFormat == 'array') {
-        for (let i = 0; i < singleMaidr.data[elIndex].length; i++) {
-          x_points.push(singleMaidr.data[elIndex][i]['x']);
-          y_points.push(singleMaidr.data[elIndex][i]['y']);
+      if (xyFormat == 'object') {
+        for (let i = 0; i < data.length; i++) {
+          x_points.push(data[i]['x']);
+          y_points.push(data[i]['y']);
         }
-      } else if (xyFormat == 'object') {
-        if ('x' in singleMaidr.data[elIndex]) {
-          x_points = singleMaidr.data[elIndex]['x'];
+      } else if (xyFormat == 'array') {
+        if ('x' in data) {
+          x_points = data['x'];
         }
-        if ('y' in singleMaidr.data[elIndex]) {
-          y_points = singleMaidr.data[elIndex]['y'];
+        if ('y' in data) {
+          y_points = data['y'];
         }
       }
 
@@ -594,10 +614,12 @@ class Layer0Point {
    * @constructor
    */
   constructor() {
-    this.x = plot.chartPointsX[0];
-    this.y = plot.chartPointsY[0];
-    this.strokeWidth = 1.35;
-    this.circleIndex = [];
+    if ([].concat(singleMaidr.type).includes('point')) {
+      this.x = plot.chartPointsX[0];
+      this.y = plot.chartPointsY[0];
+      this.strokeWidth = 1.35;
+      this.circleIndex = [];
+    }
   }
 
   /**
@@ -632,6 +654,7 @@ class Layer0Point {
 
         if (x == this.x && y == this.y[j]) {
           this.circleIndex.push(i);
+          break;
         }
       }
     }
@@ -678,11 +701,7 @@ class Layer0Point {
       point.setAttribute('stroke', constants.colorSelected);
       point.setAttribute('stroke-width', this.strokeWidth);
       point.setAttribute('fill', constants.colorSelected);
-      if (plot.svgScaler[1] == -1) {
-        constants.chart.appendChild(point);
-      } else {
-        plot.plotPoints[this.circleIndex[i]].parentNode.appendChild(point);
-      }
+      constants.chart.appendChild(point);
     }
   }
 

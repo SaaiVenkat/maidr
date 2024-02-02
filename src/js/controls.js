@@ -1617,7 +1617,7 @@ class Control {
       }
     } else if (
       [].concat(singleMaidr.type).includes('point') ||
-      singleMaidr.type == 'point'
+      [].concat(singleMaidr.type).includes('smooth')
     ) {
       // variable initialization
       constants.plotId = 'geom_point.points.12.1';

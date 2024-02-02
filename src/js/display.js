@@ -464,8 +464,8 @@ class Display {
       else if (constants.textMode == 'terse')
         output = '<p>' + textTerse + '</p>\n';
     } else if (
-      singleMaidr.type == 'point' ||
-      singleMaidr.type.includes('point')
+      [].concat(singleMaidr.type).includes('point') ||
+      [].concat(singleMaidr.type).includes('smooth')
     ) {
       if (constants.chartType == 'point') {
         // point layer
