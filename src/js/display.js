@@ -271,8 +271,8 @@ class Display {
 
       constants.brailleInput.setSelectionRange(adjustedPos, adjustedPos);
     } else if (
-      singleMaidr.type == 'point' ||
-      singleMaidr.type.includes('point')
+      singleMaidr.type == 'smooth' ||
+      singleMaidr.type.includes('smooth')
     ) {
       constants.brailleInput.setSelectionRange(positionL1.x, positionL1.x);
     }
@@ -294,12 +294,17 @@ class Display {
     let reviewText = '';
     if (constants.chartType == 'bar') {
       // {legend x} is {colname x}, {legend y} is {value y}
-      if (plot.plotLegend.x.length > 0 && plot.columnLabels[position.x]) {
-        verboseText =
-          plot.plotLegend.x + ' is ' + plot.columnLabels[position.x] + ', ';
+      if (plot.columnLabels[position.x]) {
+        if (plot.plotLegend.x.length > 0) {
+          verboseText += plot.plotLegend.x + ' is ';
+        }
+        verboseText += plot.columnLabels[position.x] + ', ';
       }
       if (plot.plotData[position.x]) {
-        verboseText += plot.plotLegend.y + ' is ' + plot.plotData[position.x];
+        if (plot.plotLegend) {
+          verboseText += plot.plotLegend.y + ' is ';
+        }
+        verboseText += plot.plotData[position.x];
       }
       if (constants.textMode == 'off') {
         // do nothing :D
@@ -329,7 +334,7 @@ class Display {
           plot.fill +
           ' is ';
         // if (constants.hasRect) {
-        verboseText += plot.plotData[2][position.y][position.x];
+        verboseText += plot.data[position.y][position.x];
         // }
       } else {
         verboseText +=
@@ -344,7 +349,7 @@ class Display {
           plot.fill +
           ' is ';
         // if (constants.hasRect) {
-        verboseText += plot.plotData[2][position.y][position.x];
+        verboseText += plot.data[position.y][position.x];
         // }
       }
       // terse and verbose alternate between columns and rows
@@ -358,7 +363,7 @@ class Display {
             '<p>' +
             plot.x_labels[position.x] +
             ', ' +
-            plot.plotData[2][position.y][position.x] +
+            plot.data[position.y][position.x] +
             '</p>\n';
         } else {
           // row navigation
@@ -366,7 +371,7 @@ class Display {
             '<p>' +
             plot.y_labels[position.y] +
             ', ' +
-            plot.plotData[2][position.y][position.x] +
+            plot.data[position.y][position.x] +
             '</p>\n';
         }
       } else if (constants.textMode == 'verbose') {
@@ -542,14 +547,14 @@ class Display {
       }
     } else if (constants.chartType == 'line') {
       // line layer
-      verboseText +=
-        plot.x_group_label +
-        ' is ' +
-        plot.pointValuesX[position.x] +
-        ', ' +
-        plot.y_group_label +
-        ' is ' +
-        plot.pointValuesY[position.x];
+      if (plot.plotLegend) {
+        verboseText += plot.plotLegend.x + ' is ';
+      }
+      verboseText += plot.pointValuesX[position.x] + ', ';
+      if (plot.plotLegend) {
+        plot.plotLegend.y + ' is ';
+      }
+      verboseText += plot.pointValuesY[position.x];
 
       if (constants.textMode == 'off') {
         // do nothing
@@ -570,8 +575,14 @@ class Display {
       constants.chartType == 'dodged_bar'
     ) {
       // {legend x} is {colname x}, {legend y} is {colname y}, value is {plotData[x][y]}
-      verboseText += plot.plotLegend.x + ' is ' + plot.level[position.x] + ', ';
-      verboseText += plot.plotLegend.y + ' is ' + plot.fill[position.y] + ', ';
+      if (plot.plotLegend) {
+        verboseText += plot.plotLegend.x + ' is ';
+      }
+      verboseText += plot.level[position.x] + ', ';
+      if (plot.plotLegend) {
+        verboseText += plot.plotLegend.y + ' is ';
+      }
+      verboseText += plot.fill[position.y] + ', ';
       verboseText += 'value is ' + plot.plotData[position.x][position.y];
 
       if (constants.textMode == 'off') {

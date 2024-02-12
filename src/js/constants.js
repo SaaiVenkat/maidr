@@ -74,13 +74,12 @@ class Constants {
   visualBraille = false; // do we want to represent braille based on what's visually there or actually there. Like if we have 2 outliers with the same position, do we show 1 (visualBraille true) or 2 (false)
   globalMinMax = true;
   ariaMode = 'assertive'; // assertive (default) / polite
-  playLLMWaitingSound = true;
 
   // LLM settings
-  LLMDebugMode = 0; // 0 = use real data, 1 = all fake, 2 = real data but no image
   openAIAuthKey = null; // OpenAI authentication key, set in menu
   geminiAuthKey = null; // Gemini authentication key, set in menu
   LLMmaxResponseTokens = 1000; // max tokens to send to LLM, 20 for testing, 1000 ish for real
+  playLLMWaitingSound = true;
   LLMDetail = 'high'; // low (default for testing, like 100 tokens) / high (default for real, like 1000 tokens)
   LLMModel = 'openai'; // openai (default) / gemini
   LLMSystemMessage =
@@ -301,7 +300,7 @@ class Menu {
             <div class="modal-dialog" role="document" tabindex="0">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Menu</h4>
+                        <h2 class="modal-title">Menu</h2>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -417,8 +416,8 @@ class Menu {
                                 </select>
                                 <label for="LLM_model">LLM Model</label>
                             </p>
-                            <p id="openai_auth_key_container" class="hidden"><input type="password" id="openai_auth_key"> <label for="openai_auth_key">OpenAI Authentication Key</label></p>
-                            <p id="gemini_auth_key_container" class="hidden"><input type="password" id="gemini_auth_key"> <label for="gemini_auth_key">Gemini Authentication Key</label></p>
+                            <p id="openai_auth_key_container" class="hidden"><input type="password" id="openai_auth_key"><button aria-label="Delete OpenAI key" title="Delete OpenAI key" id="delete_openai_key" class="invis_button">&times;</button><label for="openai_auth_key">OpenAI Authentication Key</label></p>
+                            <p id="gemini_auth_key_container" class="hidden"><input type="password" id="gemini_auth_key"><button aria-label="Delete Gemini key" title="Delete Gemini key" id="delete_gemini_key" class="invis_button">&times;</button><label for="gemini_auth_key">Gemini Authentication Key</label></p>
                             <p>
                                 <select id="skill_level">
                                     <option value="basic">Basic</option>
@@ -428,7 +427,7 @@ class Menu {
                                 </select>
                                 <label for="skill_level">Level of skill in statistical charts</label>
                             </p>
-                            <p id="skill_level_other_container" class="hidden"><input type="text" id="skill_level_other"> <label for="skill_level_other">"I have a(n) [X] understanding of statistical charts"</label></p>
+                            <p id="skill_level_other_container" class="hidden"><input type="text" placeholder="Very basic" id="skill_level_other"> <label for="skill_level_other">Describe your level of skill in statistical charts</label></p>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -472,7 +471,7 @@ class Menu {
     ]);
     constants.events.push([
       document.getElementById('menu'),
-      'keydown',
+      'keyup',
       function (e) {
         if (e.key == 'Esc') {
           // esc
@@ -595,7 +594,6 @@ class Menu {
    */
   PopulateData() {
     document.getElementById('vol').value = constants.vol;
-    //document.getElementById('show_rect').checked = constants.showRect;
     document.getElementById('autoplay_rate').value = constants.autoPlayRate;
     document.getElementById('braille_display_length').value =
       constants.brailleDisplayLength;
@@ -618,7 +616,6 @@ class Menu {
         constants.skillLevelOther;
     }
     document.getElementById('LLM_model').value = constants.LLMModel;
-
 
     // aria mode
     if (constants.ariaMode == 'assertive') {
@@ -657,7 +654,6 @@ class Menu {
    */
   SaveData() {
     constants.vol = document.getElementById('vol').value;
-    //constants.showRect = document.getElementById('show_rect').checked;
     constants.autoPlayRate = document.getElementById('autoplay_rate').value;
     constants.brailleDisplayLength = document.getElementById(
       'braille_display_length'
@@ -710,7 +706,6 @@ class Menu {
   SaveDataToLocalStorage() {
     let data = {};
     data.vol = constants.vol;
-    //data.showRect = constants.showRect;
     data.autoPlayRate = constants.autoPlayRate;
     data.brailleDisplayLength = constants.brailleDisplayLength;
     data.colorSelected = constants.colorSelected;
@@ -732,7 +727,6 @@ class Menu {
     let data = JSON.parse(localStorage.getItem('settings_data'));
     if (data) {
       constants.vol = data.vol;
-      //constants.showRect = data.showRect;
       constants.autoPlayRate = data.autoPlayRate;
       constants.brailleDisplayLength = data.brailleDisplayLength;
       constants.colorSelected = data.colorSelected;
@@ -773,7 +767,7 @@ class ChatLLM {
             <div class="modal-dialog" role="document" tabindex="0">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 id="chatLLM_title" class="modal-title">Ask a Question</h4>
+                        <h2 id="chatLLM_title" class="modal-title">Ask a Question</h2>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -819,7 +813,7 @@ class ChatLLM {
     }
     constants.events.push([
       document.getElementById('chatLLM'),
-      'keydown',
+      'keyup',
       function (e) {
         if (e.key == 'Esc') {
           // esc
@@ -828,13 +822,13 @@ class ChatLLM {
       },
     ]);
 
-    // ChatLLM open events
+    // ChatLLM open/close toggle
     constants.events.push([
       document,
       'keyup',
       function (e) {
-        if (e.key == '?') {
-          chatLLM.Toggle(true);
+        if (e.key == '?' && (e.ctrlKey || e.metaKey)) {
+          chatLLM.Toggle();
         }
       },
     ]);
@@ -851,7 +845,7 @@ class ChatLLM {
     ]);
     constants.events.push([
       document.getElementById('chatLLM_input'),
-      'keydown',
+      'keyup',
       function (e) {
         if (e.key == 'Enter' && !e.shiftKey) {
           let text = document.getElementById('chatLLM_input').value;
@@ -876,6 +870,22 @@ class ChatLLM {
         },
       ]);
     }
+
+    // Delete OpenAI and Gemini keys
+    constants.events.push([
+      document.getElementById('delete_openai_key'),
+      'click',
+      function (e) {
+        document.getElementById('openai_auth_key').value = '';
+      },
+    ]);
+    constants.events.push([
+      document.getElementById('delete_gemini_key'),
+      'click',
+      function (e) {
+        document.getElementById('gemini_auth_key').value = '';
+      },
+    ]);
   }
 
   /**
@@ -893,13 +903,7 @@ class ChatLLM {
       chatLLM.WaitingSound(true);
     }
 
-    if (constants.LLMDebugMode == 1) {
-      // do the below with a 5 sec delay
-      setTimeout(function () {
-        chatLLM.ProcessLLMResponse(chatLLM.fakeLLMResponseData());
-      }, 5000);
-      return;
-    } else if (constants.LLMModel == 'gemini') {
+    if (constants.LLMModel == 'gemini') {
       chatLLM.GeminiPrompt(text, img);
     } else if (constants.LLMModel == 'openai') {
       chatLLM.OpenAIPrompt(text, img);
@@ -1100,10 +1104,7 @@ class ChatLLM {
     let i = this.requestJson.messages.length;
     this.requestJson.messages[i] = {};
     this.requestJson.messages[i].role = 'user';
-    if (constants.LLMDebugMode == 2) {
-      // backup message only, no image
-      this.requestJson.messages[i].content = backupMessage;
-    } else if (img) {
+    if (img) {
       // first message, include the img
       this.requestJson.messages[i].content = [
         {
@@ -1176,7 +1177,7 @@ class ChatLLM {
       <div class="chatLLM_message ${
         user == 'User' ? 'chatLLM_message_self' : 'chatLLM_message_other'
       }">
-        <p class="chatLLM_message_user">${user}</p>
+        <h3 class="chatLLM_message_user">${user}</h3>
         <p class="chatLLM_message_text">${text}</p>
       </div>
     `;
@@ -1213,7 +1214,7 @@ class ChatLLM {
    * Toggles the modal on and off.
    * @param {boolean} [onoff=false] - Whether to turn the chatLLM on or off. Defaults to false (close).
    */
-  Toggle(onoff = false) {
+  Toggle(onoff) {
     if (typeof onoff == 'undefined') {
       if (document.getElementById('chatLLM').classList.contains('hidden')) {
         onoff = true;
@@ -1352,7 +1353,7 @@ class Description {
             <div class="modal-dialog" role="document" tabindex="0">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 id="desc_title" class="modal-title">Description</h4>
+                        <h2 id="desc_title" class="modal-title">Description</h2>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -1391,7 +1392,7 @@ class Description {
     }
     constants.events.push([
       document.getElementById('description'),
-      'keydown',
+      'keyup',
       function (e) {
         if (e.key == 'Esc') {
           // esc
