@@ -62,17 +62,17 @@ class ScatterPlot {
     // initially set as smooth layer (layer 2), if possible
     let elIndex = this.GetElementIndex('point'); // check if we have it
     if (elIndex != -1) {
-      if ('selector' in singleMaidr) {
+      if ('selector' in singleMaidr && singleMaidr.selector[elIndex]) {
         this.plotPoints = document.querySelectorAll(
           singleMaidr.selector[elIndex]
         );
-      } else if ('elements' in singleMaidr) {
+      } else if ('elements' in singleMaidr && singleMaidr.elements[elIndex]) {
         this.plotPoints = singleMaidr.elements[elIndex];
       }
     } else if (singleMaidr.type == 'point') {
-      if ('selector' in singleMaidr) {
+      if ('selector' in singleMaidr && singleMaidr.selector) {
         this.plotPoints = document.querySelectorAll(singleMaidr.selector);
-      } else if ('elements' in singleMaidr) {
+      } else if ('elements' in singleMaidr && singleMaidr.elements) {
         this.plotPoints = singleMaidr.elements;
       }
     }
@@ -97,17 +97,17 @@ class ScatterPlot {
     // layer = 2, smooth layer (from singleMaidr types)
     let elIndex = this.GetElementIndex('smooth'); // check if we have it
     if (elIndex != -1) {
-      if ('selector' in singleMaidr) {
+      if ('selector' in singleMaidr && singleMaidr.selector[elIndex]) {
         this.plotLine = document.querySelectorAll(
           singleMaidr.selector[elIndex]
         )[0];
-      } else if ('elements' in singleMaidr) {
+      } else if ('elements' in singleMaidr && singleMaidr.elements[elIndex]) {
         this.plotLine = singleMaidr.elements[elIndex][0];
       }
     } else if (singleMaidr.type == 'smooth') {
-      if ('selector' in singleMaidr) {
+      if ('selector' in singleMaidr && singleMaidr.selector) {
         this.plotLine = document.querySelectorAll(singleMaidr.selector)[0];
-      } else if ('elements' in singleMaidr) {
+      } else if ('elements' in singleMaidr && singleMaidr.elements) {
         this.plotLine = singleMaidr.elements;
       }
     }
@@ -320,17 +320,17 @@ class ScatterPlot {
 
     let element = null;
     if (pointIndex != -1) {
-      if ('selector' in singleMaidr) {
+      if ('selector' in singleMaidr && singleMaidr.selector[pointIndex]) {
         element = document.querySelectorAll(
           singleMaidr.selector[pointIndex]
         )[0];
-      } else if ('elements' in singleMaidr) {
+      } else if ('elements' in singleMaidr && singleMaidr.elements[pointIndex]) {
         element = singleMaidr.elements[pointIndex][0];
       }
     } else if (singleMaidr.type == 'point') {
-      if ('selector' in singleMaidr) {
+      if ('selector' in singleMaidr && singleMaidr.selector[pointIndex]) {
         element = document.querySelectorAll(singleMaidr.selector)[0];
-      } else if ('elements' in singleMaidr) {
+      } else if ('elements' in singleMaidr && singleMaidr.elements[pointIndex]) {
         element = singleMaidr.elements[0];
       }
     }
@@ -765,7 +765,7 @@ class Layer1Point {
       this.x = plot.chartLineX[0];
       this.y = plot.chartLineY[0];
       this.strokeWidth = 1.35;
-      this.hasRect = plot.GetRectStatus('point');
+      this.hasRect = plot.GetRectStatus('smooth');
     }
   }
 
